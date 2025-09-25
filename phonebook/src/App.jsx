@@ -7,6 +7,7 @@ const App = () => {
   const [ newName, setNewName ] = useState('')
   const [ newNumber, setNewNumber ] = useState('')
   const [ filterName, setFilterName ] = useState('')
+  const [ errorMessage, setErrorMessage ] = useState('')
 
   useEffect(() => {
     phoneServices
@@ -20,10 +21,21 @@ const App = () => {
       if (confirm(`${newName} is already in the phonebook. Do you want to update their number?`)) {
         const person = persons.find(p => p.name.toLowerCase() === newName.toLowerCase())
         const newPerson = {...person, number: newNumber}
-        phoneServices.updateOld(person.id, newPerson)
-        setPersons([...persons, newPerson])
-        setNewName('')
-        setNewNumber('')
+        phoneServices
+          .updateOld(person.id, newPerson)
+          .then(res => {
+            setPersons([...persons, newPerson])
+            setNewName('')
+            setNewNumber('')
+          })
+          .catch(err => {
+            setErrorMessage(
+              `Error`
+            )
+            setTimeout(() => {
+              setErrorMessage('')
+            }, 5000)
+          })
         return;
       } else {
         return
@@ -36,10 +48,23 @@ const App = () => {
       number: newNumber.toString(),
       id: Math.floor(Math.random() * 10000).toString()
     }
-    phoneServices.createNew(newPerson)
-    setPersons([...persons, newPerson])
-    setNewName('')
-    setNewNumber('')
+    phoneServices
+      .createNew(newPerson)
+      .then(res => {
+        setPersons([...persons, newPerson])
+        setNewName('')
+        setNewNumber('')
+        setErrorMessage('Success!')
+        setTimeout(() => {
+          setErrorMessage('')
+        }, 5000)
+      })
+      .catch(err => {
+        setErrorMessage(`Error creating note`)
+        setTimeout(() => {
+          setErrorMessage('')
+        }, 5000)
+      })
   }
 
   const handleNameChange = ({target}) => {
@@ -57,6 +82,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      { errorMessage && <div>{errorMessage}</div> }
       <h4>Filter</h4>
       <input value={filterName} onChange={handleFilter} />
       <h4>Add a new Name</h4>
